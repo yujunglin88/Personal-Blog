@@ -122,6 +122,18 @@ function onMouseMove(event){
 
 window.addEventListener('mousemove', onMouseMove)
 
+// Update camera settings and renderer on screen resize
+function windowResize(){
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+
+  fxaaShader.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+}
+
+window.addEventListener("resize", windowResize);
 
 
 // Animation Loop
