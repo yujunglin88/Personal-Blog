@@ -6,12 +6,15 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 
 // Setup
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
+  // antialias: true
 })
 const menuItems = {} // map of menu items, visualised as armillary spheres
 
@@ -72,10 +75,22 @@ function create_armillary_sphere(name, x, y, z, images=[]){
   sphereLight.position.set(x, y, z)
   sphereLight.visible = false
 
+  const titleLight = new THREE.PointLight(0xa3c8f7, 100)
+  titleLight.position.set(x, y+9, z)
+  titleLight.visible = false
+
+
+
+
+
+
+
+
+  
   // add all the objects to the scene
   toruses.forEach(torus => scene.add(torus))
-  scene.add(dice, outerSphere, sphereLight)
-  menuItems[name] = [dice, toruses, sphereLight]
+  scene.add(dice, outerSphere, sphereLight, titleLight)
+  menuItems[name] = [dice, toruses, sphereLight, titleLight]
 }
 
 create_armillary_sphere("pups", 10, 0, 0, [
@@ -95,6 +110,38 @@ create_armillary_sphere("cats", -10, 0, 0, [
   '/res/pups/IMG-2111.jpg'
 ])
 console.log(menuItems)
+
+const menuTitles = {}
+
+const loader = new FontLoader();
+loader.load('/node_modules/three/examples/fonts/optimer_bold.typeface.json', function (font) {
+  const geometry = new TextGeometry('Puppies!', {
+    font: font,
+    size: 2,
+    height: 1,
+    curveSegments: 10,
+    bevelEnabled: false,
+    bevelOffset: 0,
+    bevelSegments: 1,
+    bevelSize: 0.3,
+    bevelThickness: 1
+  });
+  const materials = [
+    new THREE.MeshPhongMaterial({ color: 0xff6600 }), // front
+    new THREE.MeshPhongMaterial({ color: 0x0000ff }) // side
+  ];
+  const menuTextPups = new THREE.Mesh(geometry, materials);
+  menuTextPups.castShadow = true
+  // centre the position above the armillary sphere
+  menuTextPups.geometry.computeBoundingBox()
+  menuTextPups.geometry.translate(-menuTextPups.geometry.boundingBox.max.x/2,0,0)
+  menuTextPups.position.set(10, 8, 0)
+  menuTextPups.name = 'menuTitlePups'
+  scene.add(menuTextPups)
+  // hide the menu text
+  menuTextPups.visible = false
+  menuTitles['pups'] = menuTextPups
+});
 
 // Stars
 function addStar(){
@@ -154,8 +201,8 @@ function intersection(){
 
   if ( intersects.length > 0 ) {
     if ( intersected != intersects[0].object && intersects[0].object.type === "Mesh" ) {
-      
       turnOffAllLight()
+      turnOffAllTitle()
       intersected = intersects[0].object;
 
       // console.log(intersected)
@@ -172,18 +219,31 @@ function intersection(){
 
       // turn on the light
       menu[2].visible = true
+      menu[3].visible = true
+
+      controls.autoRotate = false
+      menuTitles['pups'].visible = true
     }
   } else {
     intersected = null;
     selectedObjects.pop();
+    controls.autoRotate = true
     turnOffAllLight()
+    turnOffAllTitle()
   }
 }
 
 function turnOffAllLight(){
   for (const [key, value] of Object.entries(menuItems)) {
-    const [dice, toruses, sphereLight] = value
+    const [dice, toruses, sphereLight, titleLight] = value
     sphereLight.visible = false
+    titleLight.visible = false
+  }
+}
+
+function turnOffAllTitle(){
+  for (const [key, value] of Object.entries(menuTitles)) {
+    value.visible = false
   }
 }
 
@@ -213,7 +273,7 @@ window.addEventListener('mousemove', onMouseMove)
 window.addEventListener("resize", windowResize);
 
 
-function animate_armillary_sphere(){
+function animateArmillarySphere(){
   // loop through the scene objects map
   for (const [key, value] of Object.entries(menuItems)) {
     const [dice, toruses, sphereLight] = value
@@ -229,11 +289,20 @@ function animate_armillary_sphere(){
   }
 }
 
+function animateMenuText(){
+  // make the menu text rotate to face the camera
+  const menuText = scene.getObjectByName('menuTitlePups')
+  menuText.rotation.x = camera.rotation.x
+  menuText.rotation.y = camera.rotation.y
+  menuText.rotation.z = camera.rotation.z
+}
+
 // Animation Loop
 function animate(){
   requestAnimationFrame(animate)
 
-  animate_armillary_sphere()
+  animateArmillarySphere()
+  animateMenuText()
 
   controls.update()
 
