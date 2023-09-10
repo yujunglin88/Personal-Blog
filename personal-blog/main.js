@@ -13,6 +13,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 })
+const menuItems = {} // map of menu items, visualised as armillary spheres
 
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -32,7 +33,7 @@ outline.visibleEdgeColor.set(0x4c9aff);
 outline.hiddenEdgeColor.set(0x4c9aff);
 composer.addPass(outline);
 
-// anti-aliasing
+// shader effect
 const fxaaShader = new ShaderPass(FXAAShader);
 fxaaShader.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 composer.addPass(fxaaShader);
@@ -72,13 +73,12 @@ function create_armillary_sphere(name, x, y, z, images=[]){
   sphereLight.visible = false
 
   // add all the objects to the scene
-  scene.add(dice)
   toruses.forEach(torus => scene.add(torus))
-  scene.add(outerSphere)
-  scene.add(sphereLight)
-  return [toruses, dice, sphereLight]
+  scene.add(dice, outerSphere, sphereLight)
+  menuItems[name] = [dice, toruses, sphereLight]
 }
-const [toruses, dice, sphereLight] = create_armillary_sphere("pups", 0, 0, 0, [
+
+create_armillary_sphere("pups", 10, 0, 0, [
   '/res/pups/IMG-0167.jpg',
   '/res/pups/IMG-1102.jpg',
   '/res/pups/IMG-1684.jpg',
@@ -86,6 +86,15 @@ const [toruses, dice, sphereLight] = create_armillary_sphere("pups", 0, 0, 0, [
   '/res/pups/IMG-2108.jpg',
   '/res/pups/IMG-2111.jpg'
 ])
+create_armillary_sphere("cats", -10, 0, 0, [
+  '/res/pups/IMG-0167.jpg',
+  '/res/pups/IMG-1102.jpg',
+  '/res/pups/IMG-1684.jpg',
+  '/res/pups/IMG-1690.jpg',
+  '/res/pups/IMG-2108.jpg',
+  '/res/pups/IMG-2111.jpg'
+])
+console.log(menuItems)
 
 // Stars
 function addStar(){
@@ -103,10 +112,9 @@ for(let i = 0; i < 200; i++){
   addStar()
 }
 
-
 // Lights
 const mainPointLight = new THREE.PointLight(0xffffff, 100)
-mainPointLight.position.set(0, 15, 0)
+mainPointLight.position.set(0, 0, 0)
 
 // soft ambient light
 const ambientLight = new THREE.AmbientLight(0xffffff, 1)
@@ -145,24 +153,37 @@ function intersection(){
   const intersects = raycaster.intersectObjects(scene.children, false);
 
   if ( intersects.length > 0 ) {
-    // console.log(intersects[0].object)
     if ( intersected != intersects[0].object && intersects[0].object.type === "Mesh" ) {
       
+      turnOffAllLight()
       intersected = intersects[0].object;
 
       // console.log(intersected)
-      // console.log(intersected.name)
+      console.log(intersected.name)
+      const menu = menuItems[intersected.name]
 
-      addSelectedObjects(dice)
+      if (menu === undefined) { // not a armillary sphere
+        return
+      }
+
+      // turn on the outline effect
+      addSelectedObjects(menu[0]) // obj[0] is the dice in the armillary sphere
       outline.selectedObjects = selectedObjects;
 
       // turn on the light
-      sphereLight.visible = true
+      menu[2].visible = true
     }
   } else {
     intersected = null;
-    sphereLight.visible = false
     selectedObjects.pop();
+    turnOffAllLight()
+  }
+}
+
+function turnOffAllLight(){
+  for (const [key, value] of Object.entries(menuItems)) {
+    const [dice, toruses, sphereLight] = value
+    sphereLight.visible = false
   }
 }
 
@@ -192,18 +213,27 @@ window.addEventListener('mousemove', onMouseMove)
 window.addEventListener("resize", windowResize);
 
 
+function animate_armillary_sphere(){
+  // loop through the scene objects map
+  for (const [key, value] of Object.entries(menuItems)) {
+    const [dice, toruses, sphereLight] = value
+    
+    toruses[0].rotation.x += 0.02
+    toruses[0].rotation.y += 0.01
+  
+    toruses[1].rotation.y += 0.01
+  
+    dice.rotation.x -= 0.01
+    dice.rotation.y -= 0.005
+    dice.rotation.z -= 0.001
+  }
+}
+
 // Animation Loop
 function animate(){
   requestAnimationFrame(animate)
 
-  toruses[0].rotation.x += 0.02
-  toruses[0].rotation.y += 0.01
-
-  toruses[1].rotation.y += 0.01
-
-  dice.rotation.x -= 0.01
-  dice.rotation.y -= 0.005
-  dice.rotation.z -= 0.001
+  animate_armillary_sphere()
 
   controls.update()
 
