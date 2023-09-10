@@ -17,6 +17,7 @@ const renderer = new THREE.WebGLRenderer({
   // antialias: true
 })
 const menuItems = {} // map of menu items, visualised as armillary spheres
+const menuTitles = {}
 
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -52,7 +53,7 @@ function create_torus(radius, tube, radialSegments, tubularSegments, color, x, y
 }
 
 // create a armillary sphere with a dice inside
-function create_armillary_sphere(name, x, y, z, images=[]){
+function create_menu(name, titleText, x, y, z, images=[]){
   // 6 sided dice with with 6 different images
   const loader = new THREE.TextureLoader()
   const matx = images.map(path => new THREE.MeshBasicMaterial({ map: loader.load(path) }))
@@ -74,26 +75,47 @@ function create_armillary_sphere(name, x, y, z, images=[]){
   const sphereLight = new THREE.PointLight(0xa3c8f7, 100)
   sphereLight.position.set(x, y, z)
   sphereLight.visible = false
-
+  // attach a light source to the title of the menu
   const titleLight = new THREE.PointLight(0xa3c8f7, 100)
   titleLight.position.set(x, y+9, z)
   titleLight.visible = false
+  // create the menu title text
+  new FontLoader().load('/node_modules/three/examples/fonts/optimer_bold.typeface.json', function (font) {
+    const geometry = new TextGeometry(titleText, {
+      font: font,
+      size: 2,
+      height: 1,
+      curveSegments: 10,
+      bevelEnabled: false,
+      bevelOffset: 0,
+      bevelSegments: 1,
+      bevelSize: 0.3,
+      bevelThickness: 1
+    });
+    const materials = [
+      new THREE.MeshPhongMaterial({ color: 0xff6600 }), // front
+      new THREE.MeshPhongMaterial({ color: 0x0000ff }) // side
+    ];
+    const menuTextPups = new THREE.Mesh(geometry, materials);
+    menuTextPups.castShadow = true
+    // centre the position above the armillary sphere
+    menuTextPups.geometry.computeBoundingBox()
+    menuTextPups.geometry.translate(-menuTextPups.geometry.boundingBox.max.x/2,0,0)
+    menuTextPups.position.set(x, 8, 0)
+    menuTextPups.name = name+'Title'
+    menuTextPups.visible = false
+    // add the menu text to the scene
+    scene.add(menuTextPups)
+    menuTitles[name] = menuTextPups
+  });
 
-
-
-
-
-
-
-
-  
   // add all the objects to the scene
   toruses.forEach(torus => scene.add(torus))
   scene.add(dice, outerSphere, sphereLight, titleLight)
   menuItems[name] = [dice, toruses, sphereLight, titleLight]
 }
 
-create_armillary_sphere("pups", 10, 0, 0, [
+create_menu("pups", "Puppies!", 10, 0, 0, [
   '/res/pups/IMG-0167.jpg',
   '/res/pups/IMG-1102.jpg',
   '/res/pups/IMG-1684.jpg',
@@ -101,7 +123,7 @@ create_armillary_sphere("pups", 10, 0, 0, [
   '/res/pups/IMG-2108.jpg',
   '/res/pups/IMG-2111.jpg'
 ])
-create_armillary_sphere("cats", -10, 0, 0, [
+create_menu("cats", "Cats~", -10, 0, 0, [
   '/res/pups/IMG-0167.jpg',
   '/res/pups/IMG-1102.jpg',
   '/res/pups/IMG-1684.jpg',
@@ -111,37 +133,6 @@ create_armillary_sphere("cats", -10, 0, 0, [
 ])
 console.log(menuItems)
 
-const menuTitles = {}
-
-const loader = new FontLoader();
-loader.load('/node_modules/three/examples/fonts/optimer_bold.typeface.json', function (font) {
-  const geometry = new TextGeometry('Puppies!', {
-    font: font,
-    size: 2,
-    height: 1,
-    curveSegments: 10,
-    bevelEnabled: false,
-    bevelOffset: 0,
-    bevelSegments: 1,
-    bevelSize: 0.3,
-    bevelThickness: 1
-  });
-  const materials = [
-    new THREE.MeshPhongMaterial({ color: 0xff6600 }), // front
-    new THREE.MeshPhongMaterial({ color: 0x0000ff }) // side
-  ];
-  const menuTextPups = new THREE.Mesh(geometry, materials);
-  menuTextPups.castShadow = true
-  // centre the position above the armillary sphere
-  menuTextPups.geometry.computeBoundingBox()
-  menuTextPups.geometry.translate(-menuTextPups.geometry.boundingBox.max.x/2,0,0)
-  menuTextPups.position.set(10, 8, 0)
-  menuTextPups.name = 'menuTitlePups'
-  scene.add(menuTextPups)
-  // hide the menu text
-  menuTextPups.visible = false
-  menuTitles['pups'] = menuTextPups
-});
 
 // Stars
 function addStar(){
@@ -222,7 +213,7 @@ function intersection(){
       menu[3].visible = true
 
       controls.autoRotate = false
-      menuTitles['pups'].visible = true
+      menuTitles[intersected.name].visible = true
     }
   } else {
     intersected = null;
@@ -291,10 +282,11 @@ function animateArmillarySphere(){
 
 function animateMenuText(){
   // make the menu text rotate to face the camera
-  const menuText = scene.getObjectByName('menuTitlePups')
-  menuText.rotation.x = camera.rotation.x
-  menuText.rotation.y = camera.rotation.y
-  menuText.rotation.z = camera.rotation.z
+  for (const [key, value] of Object.entries(menuTitles)) {
+    value.rotation.x = camera.rotation.x
+    value.rotation.y = camera.rotation.y
+    value.rotation.z = camera.rotation.z
+  }
 }
 
 // Animation Loop
