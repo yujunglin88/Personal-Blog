@@ -62,6 +62,35 @@ function create_torus(radius, tube, radialSegments, tubularSegments, color, x, y
   return torus
 }
 
+// blog title
+new FontLoader().load('/node_modules/three/examples/fonts/optimer_bold.typeface.json', function (font) {
+  const geometry = new TextGeometry("Welcome to Jeff\'s Space!", {
+    font: font,
+    size: 2,
+    height: 1,
+    curveSegments: 10,
+    bevelEnabled: false,
+    bevelOffset: 0,
+    bevelSegments: 1,
+    bevelSize: 0.3,
+    bevelThickness: 1
+  });
+  const materials = [
+    new THREE.MeshPhongMaterial({ color: 0xff6600 }), // front
+    new THREE.MeshPhongMaterial({ color: 0x0000ff })  // side
+  ];
+  const title = new THREE.Mesh(geometry, materials);
+  title.castShadow = true
+  // centre the position above the armillary sphere
+  title.geometry.computeBoundingBox()
+  title.geometry.translate(-title.geometry.boundingBox.max.x/2,0,0)
+  title.position.set(0, 15, 0)
+  title.name = "title"
+  // add the menu text to the scene
+  scene.add(title)
+  menuTitles["title"] = title
+});
+
 // create a armillary sphere with a dice inside
 function create_menu(name, titleText, x, y, z, images=[]){
   // 6 sided dice with with 6 different images
@@ -106,17 +135,17 @@ function create_menu(name, titleText, x, y, z, images=[]){
       new THREE.MeshPhongMaterial({ color: 0xff6600 }), // front
       new THREE.MeshPhongMaterial({ color: 0x0000ff })  // side
     ];
-    const menuTextPups = new THREE.Mesh(geometry, materials);
-    menuTextPups.castShadow = true
+    const menuText = new THREE.Mesh(geometry, materials);
+    menuText.castShadow = true
     // centre the position above the armillary sphere
-    menuTextPups.geometry.computeBoundingBox()
-    menuTextPups.geometry.translate(-menuTextPups.geometry.boundingBox.max.x/2,0,0)
-    menuTextPups.position.set(x, 8, 0)
-    menuTextPups.name = name+'Title'
-    menuTextPups.visible = false
+    menuText.geometry.computeBoundingBox()
+    menuText.geometry.translate(-menuText.geometry.boundingBox.max.x/2,0,0)
+    menuText.position.set(x, 8, 0)
+    menuText.name = name+'Title'
+    menuText.visible = false
     // add the menu text to the scene
-    scene.add(menuTextPups)
-    menuTitles[name] = menuTextPups
+    scene.add(menuText)
+    menuTitles[name] = menuText
   });
 
   // add all the objects to the scene
@@ -178,6 +207,8 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableZoom = true
 controls.enableRotate = true
 controls.enablePan = true
+controls.maxZoom = 5
+controls.minZoom = 5
 
 // rotation
 controls.autoRotate = true
@@ -242,6 +273,9 @@ function turnOffAllLight(){
 
 function turnOffAllTitle(){
   for (const [key, value] of Object.entries(menuTitles)) {
+    if (key === 'title') {
+      continue
+    }
     value.visible = false
   }
 }
@@ -272,8 +306,6 @@ function openMenu(){
   window.removeEventListener('mouseup', onMouseRelease)
   window.removeEventListener('mousemove', onMouseMove)
 }
-
-
 
 function closeMenu(id) {
   document.getElementById(id).style.display ='none'
