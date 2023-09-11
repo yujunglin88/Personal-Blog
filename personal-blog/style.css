@@ -30,6 +30,51 @@ canvas{
   z-index: 20;
 }
 
+#pupsContent {
+  display: none;
+  position: fixed;
+  padding: 10px;
+  width: 280px;
+  left: 50%;
+  margin-left: -150px;
+  height: 80px;
+  top: 50%;
+  margin-top: -100px;
+  background: #FFF;
+  border: 3px solid #4968f0;
+  z-index: 20;
+}
+
+#introContent {
+  display: none;
+  position: fixed;
+  padding: 10px;
+  width: 380px;
+  left: 50%;
+  margin-left: -150px;
+  height: 400px;
+  top: 50%;
+  margin-top: -100px;
+  background: #FFF;
+  border: 3px solid #4968f0;
+  z-index: 20;
+}
+
+#projectsContent {
+  display: none;
+  position: fixed;
+  padding: 10px;
+  width: 300px;
+  left: 50%;
+  margin-left: -150px;
+  height: 180px;
+  top: 50%;
+  margin-top: -100px;
+  background: #FFF;
+  border: 3px solid #4968f0;
+  z-index: 20;
+}
+
 #popup:after {
   position: fixed;
   content: "";
