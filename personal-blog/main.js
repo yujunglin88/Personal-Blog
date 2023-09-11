@@ -207,36 +207,36 @@ function create_menu(name, titleText, x, y, z, images=[]){
 }
 
 create_menu("intro", "About Me!", 0, 0, 20, [
-  '/res/pups/01.jpg',
-  '/res/pups/02.jpg',
-  '/res/pups/03.jpg',
-  '/res/pups/04.jpg',
-  '/res/pups/05.jpg',
-  '/res/pups/06.jpg'
+  '/pups_01.jpg',
+  '/pups_02.jpg',
+  '/pups_03.jpg',
+  '/pups_04.jpg',
+  '/pups_05.jpg',
+  '/pups_06.jpg'
 ])
 create_menu("projects", "Projects", 20, 0, 0, [
-  '/res/pups/01.jpg',
-  '/res/pups/02.jpg',
-  '/res/pups/03.jpg',
-  '/res/pups/04.jpg',
-  '/res/pups/05.jpg',
-  '/res/pups/06.jpg'
+  '/pups_01.jpg',
+  '/pups_02.jpg',
+  '/pups_03.jpg',
+  '/pups_04.jpg',
+  '/pups_05.jpg',
+  '/pups_06.jpg'
 ])
 create_menu("pups", "Puppies!", -20, 0, 0, [
-  '/res/pups/01.jpg',
-  '/res/pups/02.jpg',
-  '/res/pups/03.jpg',
-  '/res/pups/04.jpg',
-  '/res/pups/05.jpg',
-  '/res/pups/06.jpg'
+  '/pups_01.jpg',
+  '/pups_02.jpg',
+  '/pups_03.jpg',
+  '/pups_04.jpg',
+  '/pups_05.jpg',
+  '/pups_06.jpg'
 ])
 create_menu("social", "Contact Me", 0, 0, -20, [
-  '/res/pups/01.jpg',
-  '/res/pups/02.jpg',
-  '/res/pups/03.jpg',
-  '/res/pups/04.jpg',
-  '/res/pups/05.jpg',
-  '/res/pups/06.jpg'
+  '/pups_01.jpg',
+  '/pups_02.jpg',
+  '/pups_03.jpg',
+  '/pups_04.jpg',
+  '/pups_05.jpg',
+  '/pups_06.jpg'
 ])
 console.log(menuItems)
 
