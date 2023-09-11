@@ -115,7 +115,7 @@ function create_torus(radius, tube, radialSegments, tubularSegments, color, x, y
 }
 
 // blog title
-new FontLoader().load('/res/fonts/optimer_bold.typeface.json', function (font) {
+new FontLoader().load('/optimer_bold.typeface.json', function (font) {
   const geometry = new TextGeometry("Welcome to Jeff\'s Space!", {
     font: font,
     size: 2,
@@ -171,7 +171,7 @@ function create_menu(name, titleText, x, y, z, images=[]){
   titleLight.position.set(x, y+9, z)
   titleLight.visible = false
   // create the menu title text
-  new FontLoader().load('/res/fonts/optimer_bold.typeface.json', function (font) {
+  new FontLoader().load('/optimer_bold.typeface.json', function (font) {
     const geometry = new TextGeometry(titleText, {
       font: font,
       size: 2,
