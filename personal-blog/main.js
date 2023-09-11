@@ -263,7 +263,8 @@ function openMenu(){
     return
   }
   console.log(intersected.name)
-  document.getElementById('pupsContent').style.display ='block'
+ 
+  document.getElementById( menuContents[intersected.name][1]).style.display ='block'
   // pause the auto rotation
   controls.autoRotate = false
   // temp disable the mouse click
