@@ -12,21 +12,26 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 // Setup
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+camera.position.set(0, 10, 200)
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
   // antialias: true
 })
 
+const INTRO = 'intro'
+const PROJECTS = 'projects'
 const PUPS = 'pups'
-const CATS = 'cats'
+const SOCIAL = 'social'
 
 const CLOSE = 'Close'
 const CONTENT = 'Content'
 
 const menuItems = {} // map of menu items, visualised as armillary spheres
 const menuTitles = {}
-const menuContents = {'pups':[PUPS+CLOSE, PUPS+CONTENT],
-                      'cats':[CATS+CLOSE, CATS+CONTENT]}
+const menuContents = {'intro':[INTRO+CLOSE, INTRO+CONTENT],
+                      'projects':[PROJECTS+CLOSE, PROJECTS+CONTENT],
+                      'pups':[PUPS+CLOSE, PUPS+CONTENT],
+                      'social':[SOCIAL+CLOSE, SOCIAL+CONTENT]}
 console.log(menuContents)
 
 renderer.setPixelRatio(window.devicePixelRatio)
@@ -51,6 +56,53 @@ composer.addPass(outline);
 const fxaaShader = new ShaderPass(FXAAShader);
 fxaaShader.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 composer.addPass(fxaaShader);
+
+// Controls
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableZoom = true
+controls.enableRotate = true
+controls.enablePan = true
+
+// rotation
+controls.autoRotate = true
+controls.autoRotateSpeed = -1
+controls.enableDamping = true
+controls.dampingFactor = 0.05
+
+
+function openMenu(){
+  if (intersected === null) {
+    return
+  }
+  console.log(intersected.name)
+ 
+  document.getElementById( menuContents[intersected.name][1]).style.display ='block'
+  // pause the auto rotation
+  controls.autoRotate = false
+  controls.enableRotate = false
+  // temp disable the mouse click
+  window.removeEventListener('mousedown', onMousePress)
+  window.removeEventListener('mouseup', onMouseRelease)
+  window.removeEventListener('mousemove', onMouseMove)
+}
+
+function closeMenu(id) {
+  document.getElementById(id).style.display ='none'
+  // turn auto rotation back on
+  controls.autoRotate = true
+  controls.enableRotate = true
+  window.addEventListener('mousedown', onMousePress)
+  window.addEventListener('mouseup', onMouseRelease)
+  window.addEventListener('mousemove', onMouseMove)
+}
+bindCloseMenues()
+
+
+
+
+
+
+
 
 // Torus
 function create_torus(radius, tube, radialSegments, tubularSegments, color, x, y, z, name=''){
@@ -140,7 +192,7 @@ function create_menu(name, titleText, x, y, z, images=[]){
     // centre the position above the armillary sphere
     menuText.geometry.computeBoundingBox()
     menuText.geometry.translate(-menuText.geometry.boundingBox.max.x/2,0,0)
-    menuText.position.set(x, 8, 0)
+    menuText.position.set(x, 8, z)
     menuText.name = name+'Title'
     menuText.visible = false
     // add the menu text to the scene
@@ -154,7 +206,7 @@ function create_menu(name, titleText, x, y, z, images=[]){
   menuItems[name] = [dice, toruses, sphereLight, titleLight]
 }
 
-create_menu("pups", "Puppies!", 10, 0, 0, [
+create_menu("intro", "About Me!", 0, 0, 20, [
   '/res/pups/IMG-0167.jpg',
   '/res/pups/IMG-1102.jpg',
   '/res/pups/IMG-1684.jpg',
@@ -162,7 +214,23 @@ create_menu("pups", "Puppies!", 10, 0, 0, [
   '/res/pups/IMG-2108.jpg',
   '/res/pups/IMG-2111.jpg'
 ])
-create_menu("cats", "Cats~", -10, 0, 0, [
+create_menu("projects", "Projects", 20, 0, 0, [
+  '/res/pups/IMG-0167.jpg',
+  '/res/pups/IMG-1102.jpg',
+  '/res/pups/IMG-1684.jpg',
+  '/res/pups/IMG-1690.jpg',
+  '/res/pups/IMG-2108.jpg',
+  '/res/pups/IMG-2111.jpg'
+])
+create_menu("pups", "Puppies!", -20, 0, 0, [
+  '/res/pups/IMG-0167.jpg',
+  '/res/pups/IMG-1102.jpg',
+  '/res/pups/IMG-1684.jpg',
+  '/res/pups/IMG-1690.jpg',
+  '/res/pups/IMG-2108.jpg',
+  '/res/pups/IMG-2111.jpg'
+])
+create_menu("social", "Contact Me", 0, 0, -20, [
   '/res/pups/IMG-0167.jpg',
   '/res/pups/IMG-1102.jpg',
   '/res/pups/IMG-1684.jpg',
@@ -198,21 +266,10 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 1)
 scene.add(mainPointLight, ambientLight)
 
 // light helper
-// const lightHelper = new THREE.PointLightHelper(pointLight)
+// const lightHelper = new THREE.PointLightHelper(0xffffff)
 // const gridHelper = new THREE.GridHelper(200, 50)
-// scene.add(lightHelper, gridHelper)
+// scene.add(gridHelper)
 
-// Controls
-const controls = new OrbitControls(camera, renderer.domElement)
-controls.enableZoom = true
-controls.enableRotate = true
-controls.enablePan = true
-
-// rotation
-controls.autoRotate = true
-controls.autoRotateSpeed = -1
-controls.enableDamping = true
-controls.dampingFactor = 0.05
 
 // when mouse enters the torus, it will glow
 const raycaster = new THREE.Raycaster()
@@ -290,35 +347,14 @@ function onMouseMove(event){
   highlightMenu()
 }
 
-function openMenu(){
-  if (intersected === null) {
-    return
-  }
-  console.log(intersected.name)
- 
-  document.getElementById( menuContents[intersected.name][1]).style.display ='block'
-  // pause the auto rotation
-  controls.autoRotate = false
-  // temp disable the mouse click
-  window.removeEventListener('mousedown', onMousePress)
-  window.removeEventListener('mouseup', onMouseRelease)
-  window.removeEventListener('mousemove', onMouseMove)
-}
 
-function closeMenu(id) {
-  document.getElementById(id).style.display ='none'
-  // turn auto rotation back on
-  controls.autoRotate = true
-  window.addEventListener('mousedown', onMousePress)
-  window.addEventListener('mouseup', onMouseRelease)
-  window.addEventListener('mousemove', onMouseMove)
-}
-// document.getElementById("pupsClose").onclick = closeMenu.bind(null, 'pupsContent');
+
 
 function bindCloseMenues(){
   for (const [key, value] of Object.entries(menuContents)) {
     const [close, content] = value
     document.getElementById(close).onclick = closeMenu.bind(null, content);
+    closeMenu(content)
     console.log(close, content)
   }
 }
@@ -416,5 +452,4 @@ function animate(){
   composer.render();
 }
 
-bindCloseMenues()
 animate()
