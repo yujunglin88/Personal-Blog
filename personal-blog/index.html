@@ -10,15 +10,23 @@
     <div id="app"></div>
 
     <canvas id="bg"></canvas>
-
-    <!-- document panel -->
-    <div id="document-panel">
-      <div id="document-panel__header">
-        <div id="document-panel__header__title"></div>
-        <div id="document-panel__header__close"></div>
-      </div>
-      <div id="document-panel__content"></div>
-
     <script type="module" src="/main.js"></script>
+
+    <!-- document panels -->
+    <!-- This is what will be included inside the popup -->
+    <div class="popup" id="pupsContent">
+      <p>This is a popup!</p>
+      <p>Overlay uses <b>:before</b> and <b>:after</b> pseudo-classes.</p>
+      <p>Website will still remain visible behind this popup.</p>
+      <button class="close" id="pupsClose">Close</button>
+    </div>
+
+    <div class="popup" id="catsContent">
+      <p>This is a cat popup!</p>
+      <p>Overlay uses <b>:before</b> and <b>:after</b> pseudo-classes.</p>
+      <p>Website will still remain visible behind this popup.</p>
+      <button class="close" id="catsClose">Close</button>
+    </div>
+
   </body>
 </html>

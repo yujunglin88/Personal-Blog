@@ -16,8 +16,18 @@ const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
   // antialias: true
 })
+
+const PUPS = 'pups'
+const CATS = 'cats'
+
+const CLOSE = 'Close'
+const CONTENT = 'Content'
+
 const menuItems = {} // map of menu items, visualised as armillary spheres
 const menuTitles = {}
+const menuContents = {'pups':[PUPS+CLOSE, PUPS+CONTENT],
+                      'cats':[CATS+CLOSE, CATS+CONTENT]}
+console.log(menuContents)
 
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -94,7 +104,7 @@ function create_menu(name, titleText, x, y, z, images=[]){
     });
     const materials = [
       new THREE.MeshPhongMaterial({ color: 0xff6600 }), // front
-      new THREE.MeshPhongMaterial({ color: 0x0000ff }) // side
+      new THREE.MeshPhongMaterial({ color: 0x0000ff })  // side
     ];
     const menuTextPups = new THREE.Mesh(geometry, materials);
     menuTextPups.castShadow = true
@@ -186,7 +196,7 @@ function addSelectedObjects(object){
   selectedObjects.push(object);
 }
 
-function intersection(){
+function highlightMenu(){
   raycaster.setFromCamera(mouse,camera);
   const intersects = raycaster.intersectObjects(scene.children, false);
 
@@ -196,24 +206,22 @@ function intersection(){
       turnOffAllTitle()
       intersected = intersects[0].object;
 
-      // console.log(intersected)
-      console.log(intersected.name)
-      const menu = menuItems[intersected.name]
-
-      if (menu === undefined) { // not a armillary sphere
+      if (menuItems[intersected.name] === undefined) { // not a menu item
         return
       }
 
+      const [dice, toruses, sphereLight, titleLight] = menuItems[intersected.name]
+
       // turn on the outline effect
-      addSelectedObjects(menu[0]) // obj[0] is the dice in the armillary sphere
+      addSelectedObjects(dice) 
       outline.selectedObjects = selectedObjects;
 
       // turn on the light
-      menu[2].visible = true
-      menu[3].visible = true
+      sphereLight.visible = true
+      titleLight.visible = true
+      menuTitles[intersected.name].visible = true
 
       controls.autoRotate = false
-      menuTitles[intersected.name].visible = true
     }
   } else {
     intersected = null;
@@ -238,6 +246,7 @@ function turnOffAllTitle(){
   }
 }
 
+// Mouse controls
 function onMouseMove(event){
   event.preventDefault()
   
@@ -246,8 +255,79 @@ function onMouseMove(event){
 
   raycaster.setFromCamera(mouse, camera)
 
-  intersection()
+  highlightMenu()
 }
+
+function openMenu(){
+  if (intersected === null) {
+    return
+  }
+  console.log(intersected.name)
+  document.getElementById('pupsContent').style.display ='block'
+  // pause the auto rotation
+  controls.autoRotate = false
+  // temp disable the mouse click
+  window.removeEventListener('mousedown', onMousePress)
+  window.removeEventListener('mouseup', onMouseRelease)
+  window.removeEventListener('mousemove', onMouseMove)
+}
+
+
+
+function closeMenu(id) {
+  document.getElementById(id).style.display ='none'
+  // turn auto rotation back on
+  controls.autoRotate = true
+  window.addEventListener('mousedown', onMousePress)
+  window.addEventListener('mouseup', onMouseRelease)
+  window.addEventListener('mousemove', onMouseMove)
+}
+// document.getElementById("pupsClose").onclick = closeMenu.bind(null, 'pupsContent');
+
+function bindCloseMenues(){
+  for (const [key, value] of Object.entries(menuContents)) {
+    const [close, content] = value
+    document.getElementById(close).onclick = closeMenu.bind(null, content);
+    console.log(close, content)
+  }
+}
+
+const selectedMenu = []
+
+function onMousePress(event){
+  event.preventDefault()
+
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+  raycaster.setFromCamera(mouse, camera)
+
+  const intersects = raycaster.intersectObjects(scene.children, false);
+  if (intersects.length === 0) {
+    return
+  }
+  selectedMenu.push(intersects[0].object)
+}
+
+function onMouseRelease(event){
+  event.preventDefault()
+
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+  raycaster.setFromCamera(mouse, camera)
+
+  const intersects = raycaster.intersectObjects(scene.children, false);
+  if (intersects.length === 0) {
+    selectedMenu.pop()
+    return
+  }
+  if (selectedMenu[0] === intersects[0].object) {
+    openMenu()
+  }
+  selectedMenu.pop()
+}
+
 
 // Update camera settings and renderer on screen resize
 function windowResize(){
@@ -261,6 +341,9 @@ function windowResize(){
 }
 
 window.addEventListener('mousemove', onMouseMove)
+// window.addEventListener('click', onMouseClick)
+window.addEventListener('mousedown', onMousePress)
+window.addEventListener('mouseup', onMouseRelease)
 window.addEventListener("resize", windowResize);
 
 
@@ -302,4 +385,5 @@ function animate(){
   composer.render();
 }
 
+bindCloseMenues()
 animate()
